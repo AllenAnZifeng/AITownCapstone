@@ -1,0 +1,22 @@
+{
+    "max_turns": 20,
+    "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
+    "user_prompt": "Agent {}’s background/information: {}\nConversation history: {}\nAgent {} is now talking:",
+    "topic": "The agents need to solve a murder case together. They each possess a piece of relevant information. Each agent should disclose what they know and use the available information to make logical deductions towards solving the problem. No other information is available apart from the ones given in the conversation. The conversation must end if all agents have agreed on a final suspect. Otherwise, the agents will continue the conversation.",
+    "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When the conversation has ended, respond with the string 'END OF CONVERSATION'",
+    "num_agents": 3,
+    "agents": [
+        {
+            "id": 1,
+            "background": "Agent1 knows that Andy is innocent."
+        },
+        {
+            "id": 2,
+            "background": "Agent2 knows that the suspects are Andy, Bob, and Charlie."
+        },
+        {
+            "id": 3,
+            "background": "Agent3 knows that Charlie is innocent."
+        }
+    ]
+}
