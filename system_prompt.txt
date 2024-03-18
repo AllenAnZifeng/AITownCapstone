@@ -10,4 +10,4 @@ end of conversation: END OF CONVERSATION
 Agent 1 : Albert Einstein
 Agent 2: Taylor Swift
 Agent 3: Elon Musk
-Task: go on a road trip, decide where to go
+Task: decided a location to visit, provide reasoning. Each agent start off with different opinions.

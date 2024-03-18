@@ -17,7 +17,7 @@ class Memory:
 class Chat:
     def __init__(self):
         self.memo = Memory()
-        self.limit = 10
+        self.limit = 15
         self.number_of_agents = 3
         with open('config.secret', 'r') as f:
             api_key = f.read()
@@ -57,7 +57,7 @@ class Chat:
             count += 1
             print(response)
 
-            if response.startswith('END OF CONVERSATION'):
+            if 'END OF CONVERSATION' in response:
                 print('break')
                 break
 
