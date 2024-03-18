@@ -26,21 +26,21 @@ class Agent:
 
 
 class Chat:
-    def __init__(self, chatID: int = 0):
+    def __init__(self, chat_id: int, sim_case: str):
         with open('prompts.json', 'r', encoding='utf-8') as f:
             prompt_data = json.load(f)
 
-        self.chatID = chatID
+        self.chatID = chat_id
         self.count = 0
         self.convo_history = []
         self.max_turns = prompt_data["max_turns"]
         self.system_prompt = prompt_data['system_prompt']
         self.user_prompt = prompt_data['user_prompt']
-        self.topic = prompt_data["topic"]
-        self.response_format = prompt_data["response_format"]
-        self.num_agents = prompt_data["num_agents"]
+        self.topic = prompt_data[sim_case]["topic"]
+        self.response_format = prompt_data[sim_case]["response_format"]
+        self.num_agents = prompt_data[sim_case]["num_agents"]
         self.agents = []
-        for agent in prompt_data["agents"]:
+        for agent in prompt_data[sim_case]["agents"]:
             new_agent = Agent(agent["id"], agent["background"])
             self.agents.append(new_agent)
         
@@ -112,9 +112,9 @@ class Chat:
 
 
 class Simulation:
-    def __init__(self, n: int = 0):
+    def __init__(self, n: int, sim_case: str):
         self.n = n
-        self.chats:List[Chat] = [Chat(i) for i in range(n)]
+        self.chats:List[Chat] = [Chat(i, sim_case) for i in range(n)]
         self.distribution = {}  # length: frequency
         self.jsons =[]  # json to serialize
 
