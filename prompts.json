@@ -1,22 +1,77 @@
 {
-    "max_turns": 20,
+    "max_turns": 30,
     "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
-    "user_prompt": "Agent {}’s background/information: {}\nConversation history: {}\nAgent {} is now talking:",
-    "topic": "The agents need to solve a murder case together. They each possess a piece of relevant information. Each agent should disclose what they know and use the available information to make logical deductions towards solving the problem. No other information is available apart from the ones given in the conversation. The conversation must end if all agents have agreed on a final suspect. Otherwise, the agents will continue the conversation.",
-    "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When the conversation has ended, respond with the string 'END OF CONVERSATION'",
-    "num_agents": 3,
-    "agents": [
-        {
-            "id": 1,
-            "background": "Agent1 knows that Andy is innocent."
-        },
-        {
-            "id": 2,
-            "background": "Agent2 knows that the suspects are Andy, Bob, and Charlie."
-        },
-        {
-            "id": 3,
-            "background": "Agent3 knows that Charlie is innocent."
-        }
-    ]
+    "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. They should utter:",
+    "information_transfer":
+    {
+        "topic": "Agent 1 will broadcast the piece of information they know to all other agents. The conversation ends immediately after agent 1 has finished broadcasting. Each agent should remember the broadcasted information.",
+        "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+        "num_agents": 4,
+        "agents": [
+            {
+                "id": 1,
+                "background": "Agent1 Information to broadcast: The smell of sulfur resembles that of rotten eggs."
+            },
+            {
+                "id": 2,
+                "background": "Agent2 only listens."
+            },
+            {
+                "id": 3,
+                "background": "Agent3 only listens."
+            },
+            {
+                "id": 4,
+                "background": "Agent4 only listens."
+            }
+        ]
+    },
+    "problem_solving":
+    {
+        "topic": "The agents need to solve a murder case together. They each possess some pieces of relevant information. Each agent should disclose what they know and use the available information to make strictly logical deductions towards solving the case. Agents must not make assumptions outside of the information given. The conversation ends if all agents have agreed on a final suspect. Otherwise, the agents will continue the conversation.",
+        "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+        "num_agents": 4,
+        "agents": [
+            {
+                "id": 1,
+                "background": "Agent1 knows that Daniel said Andy is guilty"
+            },
+            {
+                "id": 2,
+                "background": "Agent2 knows that Charlie is innocent."
+            },
+            {
+                "id": 3,
+                "background": "Agent3 knows that Daniel always tells the opposite of the truth."
+            },
+            {
+                "id": 4,
+                "background": "Agent4 knows that the suspects are Andy, Bob, and Charlie."
+            }
+        ]
+    },
+    "decision_making":
+    {
+        "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may also decide not to go on the trip if the destination does not appeal to them. The conversation ends if all agents have agreed on a final trip destination and whether they are going. Otherwise, the agents will continue the conversation.",
+        "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+        "num_agents": 4,
+        "agents": [
+            {
+                "id": 1,
+                "background": "Agent1 is a scientist. He prefers to go a place with a significant scientific background."
+            },
+            {
+                "id": 2,
+                "background": "Agent2 is a musician. He prefers to go to a place with frequent concerts. He will not go to Europe."
+            },
+            {
+                "id": 3,
+                "background": "Agent3 is a painter. He prefers to go to a place with museums."
+            },
+            {
+                "id": 4,
+                "background": "Agent4 is an influencer. He prefers to go to a popular tourist city in Europe."
+            }
+        ]
+    }
 }
