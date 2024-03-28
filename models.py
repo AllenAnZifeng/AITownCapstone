@@ -71,7 +71,7 @@ class Chat:
         # print("===============================================")
         
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-4
+            model="gpt-4",  # gpt-4
             messages=[
                 {
                     "role": "system",
@@ -213,7 +213,7 @@ class Simulation:
     #         print()
 
 if __name__ == '__main__':
-    sim = Simulation(10)
+    sim = Simulation(5, "decision_making")
     # sim.run()
     # sim.plot_distribution()
     # sim.write_to_file()
