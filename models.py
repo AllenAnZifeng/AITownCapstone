@@ -6,87 +6,155 @@ from matplotlib import pyplot as plt
 from openai import OpenAI
 import pickle
 
-class Memory:
-    def __init__(self):
-        self.memory = []  # type: List[str]
+class Agent:
+    def __init__(self, agent_id: int, background: str):
+        self.id = agent_id
+        self.background = background
+        self.convo_memory = []  # type: List[str]
 
-    def add(self, conversation):
-        self.memory.append(conversation)
+    def addConvoMemory(self, conversation: str):
+        self.convo_memory.append(conversation)
 
-    def get(self) -> str:
-        return '\n'.join(self.memory)
+    def getConvoMemory(self) -> str:
+        return '\n'.join(self.convo_memory)
+    
+    def getBackground(self) -> str:
+        return self.background
+    
+    def getId(self) -> int:
+        return self.id
 
 
 class Chat:
-    def __init__(self, chatID: int):
-        self.chatID = chatID
-        self.memo = Memory()
-        self.limit = 20
-        self.number_of_agents = 3
+    def __init__(self, chat_id: int, sim_case: str):
+        with open('prompts.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        self.chatID = chat_id
         self.count = 0
+        self.convo_history = []
+
+        convo_data = data["conversation"]
+        self.convo_max_turns = convo_data["max_turns"]
+        self.convo_system_prompt = convo_data['system_prompt']
+        self.convo_user_prompt = convo_data['user_prompt']
+
+        eval_data = data["evaluation"]
+        self.eval_system_prompt = eval_data['system_prompt']
+        self.eval_user_prompt = eval_data['user_prompt']
+
+        sim_case_data = data["simulation_cases"][sim_case]
+        self.topic = sim_case_data["topic"]
+        self.response_format = sim_case_data["response_format"]
+        self.evaluation_prompts = sim_case_data["evaluation_prompts"]
+        self.num_agents = sim_case_data["num_agents"]
+
+        self.agents = []
+        for agent in sim_case_data["agents"]:
+            new_agent = Agent(agent["id"], agent["background"])
+            self.agents.append(new_agent)
+                    
         with open('config.secret', 'r') as f:
             api_key = f.read()
         self.client = OpenAI(api_key=api_key)
-        with open('system_prompt.txt', 'r') as f:
-            prompt_body = f.read()
-        self.system_prompt = str(self.number_of_agents) + prompt_body
+
 
     def getResponse(self, order: int) -> str:
+        complete_system_prompt = self.convo_system_prompt.format(self.num_agents, self.topic, self.response_format)
+        complete_user_prompt = self.convo_user_prompt.format(order, self.agents[order - 1].getBackground(), self.agents[order - 1].getConvoMemory(), order)
+        # print()
+        # print()
+        # print("===============================================")
+        # print(complete_system_prompt)
+        # print()
+        # print(complete_user_prompt)
+        # print("===============================================")
+        
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-4
+            model="gpt-4",  # gpt-4
             messages=[
                 {
                     "role": "system",
-                    "content": self.system_prompt + self.memo.get()
+                    "content": complete_system_prompt
                 },
                 {
                     "role": "user",
-                    "content": f" Now Agent {order} is talking"
+                    "content": complete_user_prompt
                 }
             ]
         )
 
         content = response.choices[0].message.content
-        self.memo.add(content)
+        self.convo_history.append(content)
+        for agent in self.agents:
+            agent.addConvoMemory(content)
         return content
 
-    def getOrder(self):  # round robin
-        return [i + 1 for i in range(self.number_of_agents)] * ((self.limit // self.number_of_agents) + 1)
 
-    def getMemo(self):
-        return self.memo.get()
+    def getOrder(self):  # round robin
+        return [i + 1 for i in range(self.num_agents)] * ((self.convo_max_turns // self.num_agents) + 1)
+
+
+    def getConvoHistory(self):
+        return '\n'.join(self.convo_history)
+
 
     def getChatJSON(self):
         obj = {
             'chatID': self.chatID,
             'count': self.count,
-            'memo': self.getMemo()
+            'memo': self.getConvoHistory()
         }
         return obj
 
+
     def start(self):
-
         orders = self.getOrder()
-
-        while self.count < self.limit:
+        while self.count < self.convo_max_turns:
             response = self.getResponse(orders[self.count]).strip()
             self.count += 1
-            # print(response)
+            print(response)
             print(f'Chat {self.chatID}: count {self.count}!')
-
             if 'END OF CONVERSATION' in response:
                 print('break')
                 break
-
         print(f'Chat {self.chatID}: ended!')
 
+    
+    def eval_agents(self):
+        for i, agent in enumerate(self.agents):
+            print("===============================================")
+            print(f"evaluating agent {i + 1}:")
+            complete_system_prompt = ""
+            complete_user_prompt = ""
+            for prompt in self.evaluation_prompts:
+                complete_system_prompt = self.eval_system_prompt.format(prompt)
+                complete_user_prompt = self.eval_user_prompt.format(i + 1, agent.getBackground(), agent.getConvoMemory(), i + 1)
+                print(f"evaluation prompt: {prompt}")
+                response = self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": complete_system_prompt
+                        },
+                        {
+                            "role": "user",
+                            "content": complete_user_prompt
+                        }
+                    ]
+                )
+
+                content = response.choices[0].message.content
+                print(f"answer: {content}")
 
 class Simulation:
-    def __init__(self, n: int = 0):
+    def __init__(self, n: int, sim_case: str):
         self.n = n
-        self.chats:List[Chat] = [Chat(i) for i in range(n)]
+        self.chats:List[Chat] = [Chat(i, sim_case) for i in range(n)]
         self.distribution = {}  # length: frequency
         self.jsons =[]  # json to serialize
+
 
     def run(self):
         threads = []
@@ -107,6 +175,8 @@ class Simulation:
         for i in range(max(self.distribution.keys())+1):
             if i not in self.distribution:
                 self.distribution[i] = 0
+    
+
     def plot_distribution(self):
         data = list(self.distribution.items())
 
@@ -143,7 +213,7 @@ class Simulation:
     #         print()
 
 if __name__ == '__main__':
-    sim = Simulation(10)
+    sim = Simulation(5, "decision_making")
     # sim.run()
     # sim.plot_distribution()
     # sim.write_to_file()
