@@ -13,7 +13,7 @@ if __name__ == "__main__":
         parser.error('invalid simulation case')
     do_eval = bool(args.eval)
 
-    chat = Chat(str(args.sim_case))
+    chat = Chat(0, str(args.sim_case))
     chat.start()
     if do_eval:
         chat.eval_agents()
