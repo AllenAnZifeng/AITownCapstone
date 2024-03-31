@@ -148,7 +148,7 @@ class Chat:
                 content = response.choices[0].message.content
                 print(f"answer: {content}")
 
-class Simulation:
+class Benchmark:
     def __init__(self, n: int, sim_case: str):
         self.n = n
         self.chats:List[Chat] = [Chat(i, sim_case) for i in range(n)]
@@ -193,7 +193,7 @@ class Simulation:
 
 
     def write_to_file(self):
-        with open('simulation.json', 'w') as f:
+        with open('benchmark.json', 'w') as f:
             json.dump(self.jsons, f)
 
 
@@ -213,13 +213,13 @@ class Simulation:
     #         print()
 
 if __name__ == '__main__':
-    sim = Simulation(5, "decision_making")
+    sim = Benchmark(5, "decision_making")
     # sim.run()
     # sim.plot_distribution()
     # sim.write_to_file()
 
 
-    sim.visualizeJSON('simulation.json')
+    sim.visualizeJSON('benchmark.json')
 
 
     # with open('sim.pkl', 'wb') as f:
