@@ -27,11 +27,12 @@ class Agent:
 
 
 class Chat:
-    def __init__(self, chat_id: int, sim_case: str):
+    def __init__(self, chat_id: int, sim_case: str, strategy: str):
         with open('prompts.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
         self.chatID = chat_id
+        self.strategy = strategy
         self.count = 0
         self.convo_history = []
         self.debug = False
@@ -44,6 +45,10 @@ class Chat:
         eval_data = data["evaluation"]
         self.eval_system_prompt = eval_data['system_prompt']
         self.eval_user_prompt = eval_data['user_prompt']
+
+        mod_data = data["moderator"]
+        self.mod_system_prompt = mod_data['system_prompt']
+        self.mod_user_prompt = mod_data['user_prompt']
 
         sim_case_data = data["simulation_cases"][sim_case]
         self.topic = sim_case_data["topic"]
@@ -93,10 +98,6 @@ class Chat:
         return content
 
 
-    def getOrder(self):  # round robin
-        return [i + 1 for i in range(self.num_agents)] * ((self.convo_max_turns // self.num_agents) + 1)
-
-
     def getConvoHistory(self):
         return '\n'.join(self.convo_history)
 
@@ -108,20 +109,51 @@ class Chat:
             'memo': self.getConvoHistory()
         }
         return obj
+    
+    def getNextAgent(self):
+        complete_system_prompt = self.mod_system_prompt.format(self.num_agents, self.topic)
+        complete_user_prompt = self.mod_user_prompt.format(self.agents[0].getConvoMemory(), self.num_agents)
+        
+        response = self.client.chat.completions.create(
+            model="gpt-4",  # gpt-4
+            messages=[
+                {
+                    "role": "system",
+                    "content": complete_system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": complete_user_prompt
+                }
+            ]
+        )
+
+        content = response.choices[0].message.content
+        return int(content)
 
 
     def start(self):
-        orders = self.getOrder()
-        while self.count < self.convo_max_turns:
-            response = self.getResponse(orders[self.count]).strip()
-            self.count += 1
-            if self.debug:
+        if self.strategy == "round_robin":
+            orders = [i + 1 for i in range(self.num_agents)] * ((self.convo_max_turns // self.num_agents) + 1)
+            while self.count < self.convo_max_turns:
+                response = self.getResponse(orders[self.count]).strip()
+                self.count += 1
                 print(response)
                 print(f'Chat {self.chatID}: count {self.count}!')
-            if 'END OF CONVERSATION' in response:
-                if self.debug:
+                if 'END OF CONVERSATION' in response:
                     print('break')
-                break
+                    break
+        elif self.strategy == "moderator":
+            while self.count < self.convo_max_turns:
+                next_agent = self.getNextAgent()
+                print("next agent: ", next_agent)
+                response = self.getResponse(next_agent).strip()
+                self.count += 1
+                print(response)
+                print(f'Chat {self.chatID}: count {self.count}!')
+                if 'END OF CONVERSATION' in response:
+                    print('break')
+                    break
         print(f'Chat {self.chatID}: ended!')
 
     
@@ -153,9 +185,9 @@ class Chat:
                 print(f"answer: {content}")
 
 class Benchmark:
-    def __init__(self, n: int, sim_case: str):
+    def __init__(self, n: int, sim_case: str, strategy: str):
         self.n = n
-        self.chats:List[Chat] = [Chat(i, sim_case) for i in range(n)]
+        self.chats:List[Chat] = [Chat(i, sim_case, strategy) for i in range(n)]
         self.distribution = {}  # length: frequency
         self.jsons =[]  # json to serialize
 
@@ -209,9 +241,8 @@ class Benchmark:
 
 
 if __name__ == '__main__':
-    sim = Benchmark(5, "decision_making")
+    sim = Benchmark(5, "decision_making", "round_robin")
     sim.run()
     sim.plot_distribution()
-    sim.write_to_file()
+    sim.write_to_file()    
     sim.visualizeJSON('benchmark.json')
-

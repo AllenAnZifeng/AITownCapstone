@@ -10,6 +10,11 @@
         "system_prompt": "Each agent is being asked about their experience from a previous group conversation: {}",
         "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} should answer:"
     },
+    "moderator":
+    {
+        "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}",
+        "user_prompt": "Conversation history: {}\nBased on the topic and conversation history, which agent feels most strongly to talk next? Answer must be a single integer between 1 and {} inclusive. DO NOT UTTER ANYTHING ELSE."
+    },
     "simulation_cases":
     {
         "information_transfer":
