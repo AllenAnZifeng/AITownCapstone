@@ -1,0 +1,6 @@
+{
+    "problem_solving": {
+        "topic": "You need to solve a murder case based on a given set of information. You must only make step-by-step logical deductions to arrive at the final suspect. The information given is enough to solve the case and you must not make additional assumptions. \n\n",
+        "example": "Information: \n1. The suspects are Andy, Bob, Charlie, David. \n2. Exactly 2 of the suspects always lie, the other 2 suspects never lie. \n3. Andy said Bob is the murderer. \n4. Bob said Charlie is the murderer. \n5. David said Charlie is the murderer. \n6. Charlie said at least one of Bob or David is a liar. \n7. Charlie said David is innocent. \n\nWho is the final suspect? Give a short and succinct line of reasoning."
+    }
+}

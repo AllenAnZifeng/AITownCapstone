@@ -1,7 +1,7 @@
 {
     "conversation":
     {
-        "max_turns": 20,
+        "max_turns": 25,
         "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
         "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. They should utter:"
     },
@@ -43,9 +43,9 @@
         },
         "problem_solving":
         {
-            "topic": "The agents need to solve a murder case together. They each possess some pieces of relevant information. Each agent should disclose what they know and use the available information to make strictly logical deductions towards solving the case. Agents must not make assumptions outside of the information given. The conversation ends if all agents have agreed on a final suspect. Otherwise, the agents will continue the conversation.",
+            "topic": "The agents need to solve a murder case together. They each possess some pieces of relevant information. Each agent should disclose what they know and use the available information to make strictly logical deductions towards solving the case. The information given is enough to solve the case and agents must not make additional assumptions. Keep each utterance short and succinct. The conversation ends if all agents have agreed on a final suspect. Otherwise, the agents will continue the conversation.",
             "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
-            "num_agents": 4,
+            "num_agents": 7,
             "evaluation_prompts":
             [
                 "Who is the final suspect?"
@@ -54,19 +54,31 @@
             [
                 {
                     "id": 1,
-                    "background": "Agent1 knows that Daniel said Andy is guilty"
+                    "background": "Agent1 knows that the suspects are Andy, Bob, Charlie, David."
                 },
                 {
                     "id": 2,
-                    "background": "Agent2 knows that Charlie is innocent."
+                    "background": "Agent2 knows that exactly 2 of the suspects always lie, the other 2 suspects never lie."
                 },
                 {
                     "id": 3,
-                    "background": "Agent3 knows that Daniel always tells the opposite of the truth."
+                    "background": "Agent3 knows that Andy said Bob is the murderer."
                 },
                 {
                     "id": 4,
-                    "background": "Agent4 knows that the suspects are Andy, Bob, and Charlie."
+                    "background": "Agent4 knows that Bob said Charlie is the murderer."
+                },
+                {
+                    "id": 5,
+                    "background": "Agent5 knows that David said Charlie is the murderer."
+                },
+                {
+                    "id": 6,
+                    "background": "Agent6 knows that Charlie said at least one of Bob or David is a liar."
+                },
+                {
+                    "id": 7,
+                    "background": "Agent7 knows that Charlie said David is innocent."
                 }
             ]
         },
