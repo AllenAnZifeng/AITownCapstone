@@ -1,5 +1,6 @@
 import json
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 import matplotlib
 from matplotlib import pyplot as plt
@@ -33,6 +34,7 @@ class Chat:
         self.chatID = chat_id
         self.count = 0
         self.convo_history = []
+        self.debug = False
 
         convo_data = data["conversation"]
         self.convo_max_turns = convo_data["max_turns"]
@@ -113,10 +115,12 @@ class Chat:
         while self.count < self.convo_max_turns:
             response = self.getResponse(orders[self.count]).strip()
             self.count += 1
-            print(response)
-            print(f'Chat {self.chatID}: count {self.count}!')
+            if self.debug:
+                print(response)
+                print(f'Chat {self.chatID}: count {self.count}!')
             if 'END OF CONVERSATION' in response:
-                print('break')
+                if self.debug:
+                    print('break')
                 break
         print(f'Chat {self.chatID}: ended!')
 
@@ -157,13 +161,11 @@ class Benchmark:
 
 
     def run(self):
-        threads = []
-        for chat in self.chats:
-            t = threading.Thread(target=chat.start)
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            for chat in self.chats:
+                print(f'executing chat {chat.chatID}')
+                executor.submit(chat.start)
+
 
         self.chats.sort(key=lambda x: x.count, reverse=True)
         for chat in self.chats:
@@ -204,27 +206,12 @@ class Benchmark:
             for key,val in chat.items():
                 print(f'{key}: {val}')
             print('=='*10)
-    # @staticmethod
-    # def printJSONforChromeExtension(filename):
-    #     jsons: List[dict] = json.load(open(filename, 'r'))
-    #     for chat in jsons:
-    #         print(chat)
-    #         print('==' * 10)
-    #         print()
+
 
 if __name__ == '__main__':
     sim = Benchmark(5, "decision_making")
-    # sim.run()
-    # sim.plot_distribution()
-    # sim.write_to_file()
-
-
+    sim.run()
+    sim.plot_distribution()
+    sim.write_to_file()
     sim.visualizeJSON('benchmark.json')
 
-
-    # with open('sim.pkl', 'wb') as f:
-    #     pickle.dump(sim, f)
-    #
-    # # # Deserialize the sim object
-    # # with open('sim.pkl', 'rb') as f:
-    # #     sim = pickle.load(f)
