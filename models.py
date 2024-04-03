@@ -23,10 +23,12 @@ class Agent:
 
 
 class Chat:
-    def __init__(self, sim_case: str):
+    def __init__(self, sim_case: str, chat_id:int):
         with open('prompts.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
-
+        self.chat_id = chat_id
+        self.count = 0
+        self.chat_history = []
         convo_data = data["conversation"]
         self.convo_max_turns = convo_data["max_turns"]
         self.convo_system_prompt = convo_data['system_prompt']
@@ -42,6 +44,7 @@ class Chat:
         self.evaluation_prompts = sim_case_data["evaluation_prompts"]
         self.num_agents = sim_case_data["num_agents"]
         self.agents = []
+        self.debug = False
         for agent in sim_case_data["agents"]:
             new_agent = Agent(agent["id"], agent["background"])
             self.agents.append(new_agent)
@@ -77,27 +80,37 @@ class Chat:
         )
 
         content = response.choices[0].message.content
+        self.chat_history.append(content)
         for agent in self.agents:
             agent.addConvoMemory(content)
         return content
-
+    def getChatJSON(self):
+        history = '\n'.join(self.chat_history)
+        obj = {
+            'chatID': self.chat_id,
+            'count': self.count,
+            'memo': history
+        }
+        return obj
     def getOrder(self):  # round robin
         return [i + 1 for i in range(self.num_agents)] * ((self.convo_max_turns // self.num_agents) + 1)
 
     def start(self):
-        count = 0
+
         orders = self.getOrder()
 
-        while count < self.convo_max_turns:
-            response = self.getResponse(orders[count]).strip()
-            count += 1
-            print(response)
+        while self.count < self.convo_max_turns:
+            response = self.getResponse(orders[self.count]).strip()
+            self.count += 1
+            if self.debug:
+                print(response)
 
             if response.endswith('END OF CONVERSATION'):
-                print('break')
+                if self.debug:
+                    print('break')
                 break
 
-        print('Chat ended')
+        print(f'Chat {self.chat_id} ended')
     
     def eval_agents(self):
         for i, agent in enumerate(self.agents):
@@ -128,5 +141,5 @@ class Chat:
 
 
 if __name__ == '__main__':
-    chat = Chat()
+    chat = Chat("decision_making")
     chat.start()

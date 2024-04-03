@@ -1,7 +1,7 @@
 {
     "conversation":
     {
-        "max_turns": 20,
+        "max_turns": 40,
         "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
         "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. They should utter:"
     },
