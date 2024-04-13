@@ -78,7 +78,7 @@ class Chat:
         # print("===============================================")
         
         response = self.client.chat.completions.create(
-            model="gpt-4",  # gpt-4
+            model="gpt-3.5-turbo",  # gpt-4
             messages=[
                 {
                     "role": "system",
@@ -115,7 +115,7 @@ class Chat:
         complete_user_prompt = self.mod_user_prompt.format(self.agents[0].getConvoMemory(), self.num_agents)
         
         response = self.client.chat.completions.create(
-            model="gpt-4",  # gpt-4
+            model="gpt-3.5-turbo",  # gpt-4
             messages=[
                 {
                     "role": "system",
@@ -168,7 +168,7 @@ class Chat:
                 complete_user_prompt = self.eval_user_prompt.format(i + 1, agent.getBackground(), agent.getConvoMemory(), i + 1)
                 print(f"evaluation prompt: {prompt}")
                 response = self.client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-3.5-turbo",
                     messages=[
                         {
                             "role": "system",

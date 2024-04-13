@@ -19,7 +19,7 @@
     {
         "information_transfer":
         {
-            "topic": "Agent 1 will broadcast the piece of information they know to all other agents. The conversation ends immediately after agent 1 has finished broadcasting. Each agent should remember the broadcasted information.",
+            "topic": "Agent 1 will broadcast the piece of information they know to all other agents. Each agent should remember the broadcasted information. The conversation ends immediately after agent 1 has finished broadcasting. No other agents should respond.",
             "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
             "num_agents": 4,
             "evaluation_prompts":
