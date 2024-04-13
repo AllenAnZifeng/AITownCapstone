@@ -1,7 +1,7 @@
 {
     "conversation":
     {
-        "max_turns": 40,
+        "max_turns": 20,
         "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
         "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. They should utter:"
     },
@@ -10,10 +10,17 @@
         "system_prompt": "Each agent is being asked about their experience from a previous group conversation: {}",
         "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} should answer:"
     },
-    "moderator":
-    {
-        "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}",
-        "user_prompt": "Conversation history: {}\nBased on the topic and conversation history, which agent feels most strongly to talk next? Answer must be a single integer between 1 and {} inclusive. DO NOT UTTER ANYTHING ELSE."
+    "moderator": {
+        "order":
+        {
+            "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}",
+            "user_prompt": "Conversation history: {}\nBased on the topic and the current conversation history, which agent feels most strongly to talk next? Answer must be a single integer between 1 and {} inclusive. DO NOT UTTER ANYTHING ELSE."
+        },
+        "ending":
+        {
+            "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}",
+            "user_prompt": "Conversation history: {}\nBased on the topic and the current conversation history, should the conversation end now? Answer must be yes or no. DO NOT UTTER ANYTHING ELSE."
+        }
     },
     "simulation_cases":
     {
@@ -89,7 +96,7 @@
         },
         "decision_making":
         {
-            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may also decide not to go on the trip if the destination does not appeal to them. The conversation ends if all agents have agreed on a final trip destination and whether they are going. Otherwise, the agents will continue the conversation.",
+            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may also decide not to go on the trip if the destination does not appeal to them. Keep each utterance short and succinct. The conversation ends if ALL agents have agreed on a final trip destination and whether they are going. Otherwise, the agents will continue the conversation.",
             "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
             "num_agents": 4,
             "evaluation_prompts":
