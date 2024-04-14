@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    sim_case_options = ["information_transfer", "problem_solving", "decision_making"]
+    sim_case_options = ["information_transfer", "problem_solving", "decision_making1", "decision_making2", "decision_making3", "decision_making4"]
     order_options = ["round_robin", "moderator"]
     ending_options = ["agent", "moderator"]
     if args.sim_case not in sim_case_options:

@@ -1,9 +1,9 @@
 {
     "conversation":
     {
-        "max_turns": 20,
+        "max_turns": 40,
         "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
-        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. They should utter:"
+        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. Considering their background and the current state of the conversation, they should utter:"
     },
     "evaluation":
     {
@@ -99,9 +99,35 @@
                 }
             ]
         },
-        "decision_making":
+        "decision_making1":
         {
-            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may also decide not to go on the trip if the destination does not appeal to them. Keep each utterance short and succinct. The conversation ends if ALL agents have agreed on a final trip destination and whether they are going. Otherwise, the agents will continue the conversation.",
+            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may decide not to go on the trip if the proposed destination does not appeal to them. The conversation ends if ALL agents have agreed on a final destination, even if they decide not to go. Otherwise, the agents will continue the conversation. Keep each utterance short and succinct.",
+            "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+            "num_agents": 3,
+            "evaluation_prompts":
+            [
+                "Where is your group going for the trip?",
+                "Have you decided to go with them?"
+            ],
+            "agents": 
+            [
+                {
+                    "id": 1,
+                    "background": "Agent1 is a scientist. He prefers to go to a place with a significant scientific background."
+                },
+                {
+                    "id": 2,
+                    "background": "Agent2 is a musician. He prefers to go to a place with frequent concerts. He will not go to Europe."
+                },
+                {
+                    "id": 3,
+                    "background": "Agent3 is a painter. He prefers to go to a place with a lot of museums."
+                }
+            ]
+        },
+        "decision_making2":
+        {
+            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may decide not to go on the trip if the proposed destination does not appeal to them. The conversation ends if ALL agents have agreed on a final destination, even if they decide not to go. Otherwise, the agents will continue the conversation. Keep each utterance short and succinct.",
             "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
             "num_agents": 4,
             "evaluation_prompts":
@@ -113,11 +139,11 @@
             [
                 {
                     "id": 1,
-                    "background": "Agent1 is a scientist. He prefers to go a place with a significant scientific background."
+                    "background": "Agent1 is a scientist. He prefers to go to a place with a significant scientific background."
                 },
                 {
                     "id": 2,
-                    "background": "Agent2 is a musician. He prefers to go to a place with frequent concerts. He will not go to Europe."
+                    "background": "Agent2 is a musician. He prefers to go to a place with frequent concerts. He cannot go to Europe due to visa restrictions."
                 },
                 {
                     "id": 3,
@@ -125,7 +151,87 @@
                 },
                 {
                     "id": 4,
-                    "background": "Agent4 is an influencer. He prefers to go to a popular tourist city. He must go to Europe."
+                    "background": "Agent4 is an influencer. He can only go to Europe."
+                }
+            ]
+        },
+        "decision_making3":
+        {
+            "topic": "The agents need to plan a trip together. They each have a set of personal preferences and requirements for this trip. Each agent should share their preferences and requirements, listen to the preferences and requirements of others, and decide as a group on a single destination for the trip. Each agent may decide not to go on the trip if the proposed destination does not appeal to them. The conversation ends if ALL agents have agreed on a final destination, even if they decide not to go. Otherwise, the agents will continue the conversation. Keep each utterance short and succinct.",
+            "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+            "num_agents": 8,
+            "evaluation_prompts":
+            [
+                "Where is your group going for the trip?",
+                "Have you decided to go with them?"
+            ],
+            "agents": 
+            [
+                {
+                    "id": 1,
+                    "background": "Agent1 feel very strongly about going to Australia to see kangaroos."
+                },
+                {
+                    "id": 2,
+                    "background": "Agent2 prefers to go to a place with frequent concerts."
+                },
+                {
+                    "id": 3,
+                    "background": "Agent3 prefers to visit a big city."
+                },
+                {
+                    "id": 4,
+                    "background": "Agent4 prefers to visit somewhere with good natural scenery."
+                },
+                {
+                    "id": 5,
+                    "background": "Agent5 will not go to Australia. He is afraid of the wildlife there."
+                },
+                {
+                    "id": 6,
+                    "background": "Agent6 is secretly in love with Agent1, and will go to anywhere with him."
+                },
+                {
+                    "id": 7,
+                    "background": "Agent7 loves the ocean, and wants to go somewhere with beaches."
+                },
+                {
+                    "id": 8,
+                    "background": "Agent8 cannot go to Europe due to visa problems."
+                }
+            ]
+        },
+        "decision_making4":
+        {
+            "topic": "The agents are engaged in an auction. One of the agents is the seller, and all others are bidders. Bidders can have different opinions about the price of an item and will bid accordingly. The conversation ends if none of the bidders make a new bid for a round. Otherwise, the agents will continue the conversation.",
+            "response_format": "When continuing the conversation, response must be in the form <agent id>: <agent response content>. When ending the conversation, respond with the string END OF CONVERSATION",
+            "num_agents": 5,
+            "evaluation_prompts":
+            [
+                "How much the artifact sold for?",
+                "Did you win the auction?"
+            ],
+            "agents": 
+            [
+                {
+                    "id": 1,
+                    "background": "Agent1 is the seller of an artifact. He has a starting price of $100."
+                },
+                {
+                    "id": 2,
+                    "background": "Agent2 is very interested in buying the artifact. He has $600 in cash."
+                },
+                {
+                    "id": 3,
+                    "background": "Agent3 is not interested in the artifact at all."
+                },
+                {
+                    "id": 4,
+                    "background": "Agent4 is interested in buying the artifact. He wants to buy it at $300 or less, but can accept up to $400"
+                },
+                {
+                    "id": 5,
+                    "background": "Agent5 is interested in buying the artifact. He prefers to buy it at $150, but can consider spending up to $500."
                 }
             ]
         }
