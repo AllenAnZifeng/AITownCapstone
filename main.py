@@ -3,6 +3,21 @@ from models import Chat
 from models import Benchmark
 
 if __name__ == "__main__":
+    """
+    usage: main.py [-h] [-m] [-e] [-b [BENCHMARK]] sim_case order ending
+
+    positional arguments:
+    sim_case              simulation case to run. Can be: 1. information_transfer 2. problem_solving 3. decision_making
+    order                 conversation order strategy. Can be: 1. round_robin 2. moderator
+    ending                conversation ending strategy. Can be: 1. agent 2. moderator
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -m, --moderate        Add moderator to conversation
+    -e, --eval            Do evaluation
+    -b [BENCHMARK], --benchmark [BENCHMARK]
+                            Benchmark n simulations
+    """    
     parser = argparse.ArgumentParser(description="specify simulation case")
     parser.add_argument("sim_case", type=str, help="simulation case to run. Can be:\n   1. information_transfer\n   2. problem_solving\n   3. decision_making")
     parser.add_argument("order", type=str, help="conversation order strategy. Can be:\n   1. round_robin\n   2. moderator")
