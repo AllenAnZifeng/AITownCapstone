@@ -28,13 +28,14 @@ class Agent:
 
 
 class Chat:
-    def __init__(self, chat_id: int, sim_case: str, order: str, ending: str):
+    def __init__(self, chat_id: int, sim_case: str, order: str, ending: str, moderate: bool):
         with open('prompts.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
         self.chatID = chat_id
         self.order = order
         self.ending = ending
+        self.moderate = moderate
         self.count = 0
         self.convo_history = []
         self.debug = False
@@ -53,6 +54,8 @@ class Chat:
         self.mod_order_user_prompt = mod_data["order"]["user_prompt"]
         self.mod_ending_system_prompt = mod_data["ending"]["system_prompt"]
         self.mod_ending_user_prompt = mod_data["ending"]["user_prompt"]
+        self.mod_speak_system_prompt = mod_data["speak"]["system_prompt"]
+        self.mod_speak_user_prompt = mod_data["speak"]["user_prompt"]
 
         sim_case_data = data["simulation_cases"][sim_case]
         self.topic = sim_case_data["topic"]
@@ -70,38 +73,6 @@ class Chat:
         self.client = OpenAI(api_key=api_key)
 
 
-    def getResponse(self, order: int) -> str:
-        complete_system_prompt = self.convo_system_prompt.format(self.num_agents, self.topic, self.response_format)
-        complete_user_prompt = self.convo_user_prompt.format(order, self.agents[order - 1].getBackground(), self.agents[order - 1].getConvoMemory(), order)
-        # print()
-        # print()
-        # print("===============================================")
-        # print(complete_system_prompt)
-        # print()
-        # print(complete_user_prompt)
-        # print("===============================================")
-        
-        response = self.client.chat.completions.create(
-            model="gpt-4",  # gpt-4
-            messages=[
-                {
-                    "role": "system",
-                    "content": complete_system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": complete_user_prompt
-                }
-            ]
-        )
-
-        content = response.choices[0].message.content
-        self.convo_history.append(content)
-        for agent in self.agents:
-            agent.addConvoMemory(content)
-        return content
-
-
     def getConvoHistory(self):
         return '\n'.join(self.convo_history)
 
@@ -113,6 +84,60 @@ class Chat:
             'memo': self.getConvoHistory()
         }
         return obj
+
+
+    def getAgentResponse(self, order: int) -> str:
+        complete_system_prompt = self.convo_system_prompt.format(self.num_agents, self.topic, self.response_format)
+        complete_user_prompt = self.convo_user_prompt.format(order, self.agents[order - 1].getBackground(), self.agents[order - 1].getConvoMemory(), order)
+        # print()
+        # print()
+        # print("===============================================")
+        # print(complete_system_prompt)
+        # print()
+        # print(complete_user_prompt)
+        # print("===============================================")
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo",  # gpt-3.5-turbo
+            messages=[
+                {
+                    "role": "system",
+                    "content": complete_system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": complete_user_prompt
+                }
+            ]
+        )
+        content = response.choices[0].message.content
+        self.convo_history.append(content)
+        for agent in self.agents:
+            agent.addConvoMemory(content)
+        return content
+    
+
+    def getModeratorResponse(self) -> str:
+        complete_system_prompt = self.mod_speak_system_prompt.format(self.num_agents, self.topic)
+        complete_user_prompt = self.mod_speak_user_prompt.format(self.convo_history)
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo",  # gpt-3.5-turbo
+            messages=[
+                {
+                    "role": "system",
+                    "content": complete_system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": complete_user_prompt
+                }
+            ]
+        )
+        content = response.choices[0].message.content
+        response = "Moderator: " + str(content)
+        self.convo_history.append(response)
+        for agent in self.agents:
+            agent.addConvoMemory(response)
+        return response
     
 
     def getNextAgent(self):
@@ -120,9 +145,9 @@ class Chat:
             return self.count % self.num_agents + 1
         if self.order == "moderator":
             complete_system_prompt = self.mod_order_system_prompt.format(self.num_agents, self.topic)
-            complete_user_prompt = self.mod_order_user_prompt.format(self.agents[0].getConvoMemory(), self.num_agents)
+            complete_user_prompt = self.mod_order_user_prompt.format(self.convo_history, self.num_agents)
             response = self.client.chat.completions.create(
-                model="gpt-4",  # gpt-4
+                model="gpt-3.5-turbo",  # gpt-3.5-turbo
                 messages=[
                     {
                         "role": "system",
@@ -141,9 +166,9 @@ class Chat:
     
     def moderatorEnding(self):
         complete_system_prompt = self.mod_ending_system_prompt.format(self.num_agents, self.topic)
-        complete_user_prompt = self.mod_ending_user_prompt.format(self.agents[0].getConvoMemory())
+        complete_user_prompt = self.mod_ending_user_prompt.format(self.convo_history)
         response = self.client.chat.completions.create(
-            model="gpt-4",  # gpt-4
+            model="gpt-3.5-turbo",  # gpt-3.5-turbo
             messages=[
                 {
                     "role": "system",
@@ -168,9 +193,12 @@ class Chat:
             if self.count > 0 and self.ending == "moderator" and self.moderatorEnding():
                 print('moderator ends conversation')
                 break
+            if self.count > 0 and self.moderate:
+                response = self.getModeratorResponse().strip()
+                print(response)
             next_agent = self.getNextAgent()
             print("next agent: ", next_agent)
-            response = self.getResponse(next_agent).strip()
+            response = self.getAgentResponse(next_agent).strip()
             self.count += 1
             print(response)
             print(f'Chat {self.chatID}: count {self.count}')
@@ -191,7 +219,7 @@ class Chat:
                 complete_user_prompt = self.eval_user_prompt.format(i + 1, agent.getBackground(), agent.getConvoMemory(), i + 1)
                 print(f"evaluation prompt: {prompt}")
                 response = self.client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-3.5-turbo",
                     messages=[
                         {
                             "role": "system",
@@ -203,14 +231,13 @@ class Chat:
                         }
                     ]
                 )
-
                 content = response.choices[0].message.content
                 print(f"answer: {content}")
 
 class Benchmark:
-    def __init__(self, n: int, sim_case: str, order: str, ending: str):
+    def __init__(self, n: int, sim_case: str, order: str, ending: str, moderate: bool):
         self.n = n
-        self.chats:List[Chat] = [Chat(i, sim_case, order, ending) for i in range(n)]
+        self.chats:List[Chat] = [Chat(i, sim_case, order, ending, moderate) for i in range(n)]
         self.distribution = {}  # length: frequency
         self.jsons =[]  # json to serialize
 
@@ -264,7 +291,7 @@ class Benchmark:
 
 
 if __name__ == '__main__':
-    sim = Benchmark(5, "decision_making", "round_robin")
+    sim = Benchmark(5, "decision_making", "round_robin", False)
     sim.run()
     sim.plot_distribution()
     sim.write_to_file()    

@@ -20,6 +20,11 @@
         {
             "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}",
             "user_prompt": "Conversation history: {}\nBased on the topic and the current conversation history, should the conversation end now? Answer must be yes or no. DO NOT UTTER ANYTHING ELSE."
+        },
+        "speak":
+        {
+            "system_prompt": "{} agents are participating in a group conversation. You are the moderator of this conversation. The description of the conversation is summarized below:\nTopic: {}",
+            "user_prompt": "Conversation history: {}\nAs the moderator, you want to push the conversation towards resolution. Based on the topic and current conversation history, you should utter:"
         }
     },
     "simulation_cases":
