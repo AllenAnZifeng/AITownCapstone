@@ -7,6 +7,9 @@ from matplotlib import pyplot as plt
 from openai import OpenAI
 import pickle
 import re
+import requests
+
+USE_MIXTRAL = True
 
 class Agent:
     def __init__(self, agent_id: int, background: str):
@@ -68,9 +71,18 @@ class Chat:
             new_agent = Agent(agent["id"], agent["background"])
             self.agents.append(new_agent)
                     
-        with open('config.secret', 'r') as f:
+        with open('openai.secret', 'r') as f:
             api_key = f.read()
         self.client = OpenAI(api_key=api_key)
+
+        with open('mixtral.secret', 'r') as f:
+            bearer_key = f.read()
+
+        self.mixtral_url = "http://gpublaze.ist.berkeley.edu:54321/v1/chat/completions"
+        self.mixtral_headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + bearer_key
+        }
 
 
     def getConvoHistory(self):
@@ -84,6 +96,47 @@ class Chat:
             'memo': self.getConvoHistory()
         }
         return obj
+    
+
+    def promptLLM(self, system_prompt: str, user_prompt: str):
+        content = ""
+        if USE_MIXTRAL:
+            # Define the request payload
+            payload = {
+                "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                "messages": [
+                    {
+                        "role": "user", 
+                        "content": system_prompt + "\n\n" + user_prompt
+                    }
+                    # {
+                    #     "role": "assistant", 
+                    #     "content": user_prompt
+                    # }
+                ]
+            }
+            response = requests.post(self.mixtral_url, json=payload, headers=self.mixtral_headers)
+            if response.status_code == 200:
+                response_data = response.json()
+                content = response_data['choices'][0]['message']['content']
+            else:
+                print("Error:", response)
+        else:
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",  # gpt-3.5-turbo
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": user_prompt
+                    }
+                ]
+            )
+            content = response.choices[0].message.content
+        return content
 
 
     def getAgentResponse(self, order: int) -> str:
@@ -96,20 +149,7 @@ class Chat:
         # print()
         # print(complete_user_prompt)
         # print("===============================================")
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-3.5-turbo
-            messages=[
-                {
-                    "role": "system",
-                    "content": complete_system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": complete_user_prompt
-                }
-            ]
-        )
-        content = response.choices[0].message.content
+        content = self.promptLLM(complete_system_prompt, complete_user_prompt)
         self.convo_history.append(content)
         for agent in self.agents:
             agent.addConvoMemory(content)
@@ -119,25 +159,12 @@ class Chat:
     def getModeratorResponse(self) -> str:
         complete_system_prompt = self.mod_speak_system_prompt.format(self.num_agents, self.topic)
         complete_user_prompt = self.mod_speak_user_prompt.format(self.convo_history)
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-3.5-turbo
-            messages=[
-                {
-                    "role": "system",
-                    "content": complete_system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": complete_user_prompt
-                }
-            ]
-        )
-        content = response.choices[0].message.content
-        response = "Moderator: " + str(content)
-        self.convo_history.append(response)
+        content = self.promptLLM(complete_system_prompt, complete_user_prompt)
+        content = "Moderator: " + str(content)
+        self.convo_history.append(content)
         for agent in self.agents:
-            agent.addConvoMemory(response)
-        return response
+            agent.addConvoMemory(content)
+        return content
     
 
     def getNextAgent(self):
@@ -146,20 +173,7 @@ class Chat:
         if self.order == "moderator":
             complete_system_prompt = self.mod_order_system_prompt.format(self.num_agents, self.topic)
             complete_user_prompt = self.mod_order_user_prompt.format(self.convo_history, self.num_agents)
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",  # gpt-3.5-turbo
-                messages=[
-                    {
-                        "role": "system",
-                        "content": complete_system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": complete_user_prompt
-                    }
-                ]
-            )
-            content = response.choices[0].message.content
+            content = self.promptLLM(complete_system_prompt, complete_user_prompt)
             match = re.search(r'\d+', content)
             return int(match.group()) if match else 1
         
@@ -167,20 +181,7 @@ class Chat:
     def moderatorEnding(self):
         complete_system_prompt = self.mod_ending_system_prompt.format(self.num_agents, self.topic)
         complete_user_prompt = self.mod_ending_user_prompt.format(self.convo_history)
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-3.5-turbo
-            messages=[
-                {
-                    "role": "system",
-                    "content": complete_system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": complete_user_prompt
-                }
-            ]
-        )
-        content = response.choices[0].message.content
+        content = self.promptLLM(complete_system_prompt, complete_user_prompt)
         pattern = r"\b(?:yes|no)\b"
         match = re.search(pattern, content, re.IGNORECASE)
         if match and str(match.group()).lower() == "yes":
@@ -218,20 +219,7 @@ class Chat:
                 complete_system_prompt = self.eval_system_prompt.format(prompt)
                 complete_user_prompt = self.eval_user_prompt.format(i + 1, agent.getBackground(), agent.getConvoMemory(), i + 1)
                 print(f"evaluation prompt: {prompt}")
-                response = self.client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": complete_system_prompt
-                        },
-                        {
-                            "role": "user",
-                            "content": complete_user_prompt
-                        }
-                    ]
-                )
-                content = response.choices[0].message.content
+                content = self.promptLLM(complete_system_prompt, complete_user_prompt)
                 print(f"answer: {content}")
 
 class Benchmark:

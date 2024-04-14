@@ -1,14 +1,14 @@
 {
     "conversation":
     {
-        "max_turns": 40,
+        "max_turns": 20,
         "system_prompt": "{} agents are participating in a group conversation. The description of the conversation is summarized below:\nTopic: {}\nResponse Format: {}",
-        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} is now talking. Considering their background and the current state of the conversation, they should utter:"
+        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nYou are agent {} and it's your turn to speak. Considering your background and the current state of the conversation, you should utter:"
     },
     "evaluation":
     {
         "system_prompt": "Each agent is being asked about their experience from a previous group conversation: {}",
-        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nAgent {} should answer:"
+        "user_prompt": "Agent {}'s background/information: {}\nConversation history: {}\nYou are agent {}. You should answer:"
     },
     "moderator": {
         "order":
